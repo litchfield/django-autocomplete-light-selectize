@@ -1,0 +1,9 @@
+.selectize-container {
+    min-width: 20em;
+}
+
+ul li.selectize-selection__choice,
+ul li.selectize-search {
+    /* Cancel out django's style */
+    list-style-type: none;
+}
