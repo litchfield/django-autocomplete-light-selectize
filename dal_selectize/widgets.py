@@ -26,7 +26,7 @@ class SelectizeWidgetMixin(object):
         js = (
             'autocomplete_light/jquery.init.js',
             'autocomplete_light/autocomplete.init.js',
-            'autocomplete_light/vendor/selectize/dist/js/selectize.min.js',
+            'autocomplete_light/vendor/selectize/dist/js/standalone/selectize.min.js',
             'autocomplete_light/selectize.js',
         )
 
