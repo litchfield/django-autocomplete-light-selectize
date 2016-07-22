@@ -1,4 +1,5 @@
 ;(function ($) {
+    
     function add_forwards(element) {
         var forward = element.attr('data-autocomplete-light-forward');
         if (forward !== undefined) {
@@ -20,7 +21,7 @@
         var $elem = $(this);
 
         // This widget has a clear button
-        $(this).find('option[value=""]').remove();
+        $elem.find('option[value=""]').remove();
 
         $elem.selectize({
             delimiter: $elem.attr('data-tags') ? [','] : null,
@@ -34,6 +35,7 @@
                     //cache: true,
                     data: {
                         q: query,
+                        selected: $elem.val().join(','),
                         forward: add_forwards($elem)
                     },
                     error: function() {
@@ -54,44 +56,7 @@
 
         });
 
-        // Handle item creation ****** NYI
-        // $elem.on('change', function (e) {
-        //     var data = e.params.args.data;
-
-        //     if (data.create_id !== true)
-        //         return;
-
-        //     e.preventDefault();
-
-        //     $.ajax({
-        //         url: $elem.attr('data-autocomplete-light-url'),
-        //         type: 'POST',
-        //         dataType: 'json',
-        //         data: {
-        //             text: data.id,
-        //             forward: add_forwards($elem)
-        //         },
-        //         beforeSend: function(xhr, settings) {
-        //             xhr.setRequestHeader("X-CSRFToken", document.csrftoken);
-        //         },
-        //         success: function(data, textStatus, jqXHR ) {
-        //             $elem.append(
-        //                 $('<option>', {value: data.value, text: data.text, selected: true})
-        //             );
-        //             $elem.trigger('change');
-        //             $elem.selectize.close();
-        //         }
-        //     });
-
-        // });
-
     });
 
-    // Remove this block when this is merged upstream:
-    // https://github.com/selectize/selectize/pull/4249
-    $(document).on('DOMSubtreeModified', '[data-autocomplete-light-function=selectize] option', function() {
-        $(this).parents('select').next().find(
-            '.selectize-selection--single .selectize-selection__rendered'
-        ).text($(this).text());
-    });
+
 })(yl.jQuery);

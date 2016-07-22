@@ -1,12 +1,12 @@
 """Selectize widget implementation module."""
-
+import copy
 from dal.widgets import (
     QuerySetSelectMixin,
     Select,
     SelectMultiple,
     WidgetMixin
 )
-
+from django import VERSION
 from django import forms
 from django.utils import six
 
@@ -33,27 +33,50 @@ class SelectizeWidgetMixin(object):
     autocomplete_function = 'selectize'
 
 
-class Selectize(SelectizeWidgetMixin, Select):
+class SelectizeFixInit(object):
+    def render_options(self, *args):
+        """
+        Variation to DAL default, which adds selected_choices to choices
+        """
+        selected_choices_arg = 1 if VERSION < (1, 10) else 0
+
+        # Filter out None values, not needed for autocomplete
+        selected_choices = [c for c in args[selected_choices_arg] if c]
+
+        if self.url:
+            all_choices = copy.copy(self.choices)
+            self.choices += [ (c, c) for c in selected_choices ]
+            self.filter_choices_to_render(selected_choices)
+
+        html = super(WidgetMixin, self).render_options(*args)
+
+        if self.url:
+            self.choices = all_choices
+
+        return html
+
+
+class Selectize(SelectizeFixInit, SelectizeWidgetMixin, Select):
     """Selectize widget for regular choices."""
 
 
-class SelectizeMultiple(SelectizeWidgetMixin, SelectMultiple):
+class SelectizeMultiple(SelectizeFixInit, SelectizeWidgetMixin, SelectMultiple):
     """SelectizeMultiple widget for regular choices."""
 
 
-class ModelSelectize(QuerySetSelectMixin,
+class ModelSelectize(SelectizeFixInit, QuerySetSelectMixin,
                    SelectizeWidgetMixin,
                    forms.Select):
     """Select widget for QuerySet choices and Selectize."""
 
 
-class ModelSelectizeMultiple(QuerySetSelectMixin,
+class ModelSelectizeMultiple(SelectizeFixInit, QuerySetSelectMixin,
                            SelectizeWidgetMixin,
                            forms.SelectMultiple):
     """SelectMultiple widget for QuerySet choices and Selectize."""
 
 
-class TagSelectize(WidgetMixin,
+class TagSelectize(SelectizeFixInit, WidgetMixin,
                  SelectizeWidgetMixin,
                  forms.SelectMultiple):
     """Selectize in tag mode."""

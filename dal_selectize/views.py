@@ -11,6 +11,10 @@ from django.utils.translation import ugettext as _
 class SelectizeViewMixin(object):
     """View mixin to render a JSON response for Selectize."""
 
+    def dispatch(self, request, *args, **kwargs):
+        self.selected = [ v for v in request.GET.get('selected', '').split(',') if v != '' ]
+        return super(SelectizeViewMixin, self).dispatch(request, *args, **kwargs)
+
     def get_results(self, context):
         """Return data for the 'results' key of the response."""
         return [
