@@ -20,23 +20,20 @@
     $(document).on('autocompleteLightInitialize', '[data-autocomplete-light-function=selectize]', function() {
         var $elem = $(this);
 
-        // This widget has a clear button
-        $elem.find('option[value=""]').remove();
-
-        $elem.selectize({
-            delimiter: $elem.attr('data-tags') ? [','] : null,
-            allowEmptyOption: ! $elem.is('required'),
-            preload: true,
-            load: function(query, callback) {
+        // If we have a URL, setup AJAX call
+        var load;
+        var url = $elem.attr('data-autocomplete-light-url');
+        if (url) {
+            load = function(query, callback) {
                 var data = {
                     q: query,
                     forward: add_forwards($elem)
                 }
-                if ($elem.val()) {
+                if ($elem.val() instanceof Array) {
                     data['selected'] = $elem.val().join(',');
                 }
                 $.ajax({
-                    url: $elem.attr('data-autocomplete-light-url'),
+                    url: url,
                     dataType: 'json',
                     delay: 250,
                     //cache: true,
@@ -51,12 +48,21 @@
                                 item.value = item.text;
                             });
                         }
-                        // console.log(data);
                         callback(data.results);
                     }
                 });
-            },
+            };
+        };
 
+        // This widget has a clear button
+        $elem.find('option[value=""]').remove();
+
+        // Bind selectize
+        $elem.selectize({
+            delimiter: $elem.attr('data-tags') ? [','] : null,
+            allowEmptyOption: ! $elem.is('required'),
+            preload: true,
+            load: load
         });
 
     });
