@@ -64,13 +64,13 @@ class SelectizeMultiple(SelectizeFixInit, SelectizeWidgetMixin, SelectMultiple):
     """SelectizeMultiple widget for regular choices."""
 
 
-class ModelSelectize(SelectizeFixInit, QuerySetSelectMixin,
+class ModelSelectize(QuerySetSelectMixin,
                    SelectizeWidgetMixin,
                    forms.Select):
     """Select widget for QuerySet choices and Selectize."""
 
 
-class ModelSelectizeMultiple(SelectizeFixInit, QuerySetSelectMixin,
+class ModelSelectizeMultiple(QuerySetSelectMixin,
                            SelectizeWidgetMixin,
                            forms.SelectMultiple):
     """SelectMultiple widget for QuerySet choices and Selectize."""

@@ -28,16 +28,19 @@
             allowEmptyOption: ! $elem.is('required'),
             preload: true,
             load: function(query, callback) {
+                var data = {
+                    q: query,
+                    forward: add_forwards($elem)
+                }
+                if ($elem.val()) {
+                    data['selected'] = $elem.val().join(',');
+                }
                 $.ajax({
                     url: $elem.attr('data-autocomplete-light-url'),
                     dataType: 'json',
                     delay: 250,
                     //cache: true,
-                    data: {
-                        q: query,
-                        selected: $elem.val().join(','),
-                        forward: add_forwards($elem)
-                    },
+                    data: data,
                     error: function() {
                         // TODO: handle error better
                         console.log('Error calling `' + $elem.attr('name') + '` selectize AJAX endpoint');
