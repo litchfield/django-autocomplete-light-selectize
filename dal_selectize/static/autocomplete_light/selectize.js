@@ -36,7 +36,6 @@
                     url: url,
                     dataType: 'json',
                     delay: 250,
-                    //cache: true,
                     data: data,
                     error: function() {
                         // TODO: handle error better
@@ -59,7 +58,7 @@
 
         // Bind selectize
         $elem.selectize({
-            delimiter: $elem.attr('data-tags') ? [','] : null,
+            delimiter: $elem.attr('data-tags') ? ',' : null,
             allowEmptyOption: ! $elem.is('required'),
             preload: true,
             load: load
