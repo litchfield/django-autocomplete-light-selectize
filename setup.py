@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name='django-autocomplete-light-selectize',
-    version='0.1',
+    version='0.1.1',
     description='Selectize support for Django Autocomplete Light',
     author='Simon Litchfield',
     author_email='simon@litchfield.digital',
