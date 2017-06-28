@@ -47,53 +47,44 @@
     }
 
     $(document).on('autocompleteLightInitialize', '[data-autocomplete-light-function=selectize]', function() {
-        var $elem = $(this);
-
-        // If we have a URL, setup AJAX call
-        var load;
-        var url = $elem.attr('data-autocomplete-light-url');
-        if (url) {
-            load = function(query, callback) {
-                var data = {
-                    q: query,
-                    forward: get_forwards($elem)
-                    //create: $elem.attr('data-autocomplete-light-create') && !$elem.attr('data-tags'),
-                }
-                if ($elem.val() instanceof Array) {
-                    data['selected'] = $elem.val().join(',');
-                }
+        var element = $(this);        
+        var ajax = null;
+        if ($(this).attr('data-autocomplete-light-url')) {
+            ajax = function(query, callback) {
+                if (!query.length) return callback();
                 $.ajax({
-                    url: url,
+                    url: element.attr('data-autocomplete-light-url'),
                     dataType: 'json',
                     delay: 250,
-                    data: data,
-                    error: function() {
-                        // TODO: handle error better
-                        console.log('Error calling `' + $elem.attr('name') + '` selectize AJAX endpoint');
+                    data: {
+                        q: query,
+                        //page: params.page,
+                        create: element.attr('data-autocomplete-light-create') && !element.attr('data-tags'),
+                        forward: get_forwards(element)
                     },
                     success: function(data) {
-                        if ($elem.attr('data-tags')) {
+                        if (element.attr('data-tags')) {
                             $.each(data.results, function(index, item) {
                                 item.value = item.text;
                             });
                         }
                         callback(data.results);
-                    }
+                    },
+                    cache: true
                 });
-            };
-        };
+            }
+        }
 
         // This widget has a clear button
-        $elem.find('option[value=""]').remove();
+        element.find('option[value=""]').remove();
 
         // Bind selectize
-        var $select = $elem.selectize({
+        element.selectize({
             plugins: ['remove_button'],
-            delimiter: $elem.attr('data-tags') ? ',' : null,
-            allowEmptyOption: ! $elem.is('required'),
-            preload: true,
-            load: load,
-            //onChange: eventHandler('onChange'),
+            delimiter: element.attr('data-tags') ? ',' : null,
+            allowEmptyOption: ! element.is('required'),
+            preload: false,
+            load: ajax,
             render: {
                 option: function(data, escape) {
                     return "<div>" + data.text + "</div>";
@@ -110,4 +101,3 @@
         window.__dal__initialize(this);
     });
 })(yl.jQuery);
-
