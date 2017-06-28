@@ -50,7 +50,6 @@ class ContactAutocomplete(SelectizeQuerySetView):
 ```
 
 More to come:
-- Forwarding not tested yet
 - Plugins
 - Tags mode
 - Option Groups 
