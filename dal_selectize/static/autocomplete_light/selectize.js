@@ -1,20 +1,49 @@
 ;(function ($) {
     
-    function add_forwards(element) {
-        var forward = element.attr('data-autocomplete-light-forward');
-        if (forward !== undefined) {
-            forward = forward.split(',');
-
-            var prefix = $(element).getFormPrefix();
-            var data_forward = {};
-
-            for (var key in forward) {
-                var name = prefix + forward[key];
-                data_forward[forward[key]] = $('[name=' + name + ']').val();
-            }
-
-            return JSON.stringify(data_forward);
+    function get_forwards(element) {
+        var forwardElem, forwardList, prefix, forwardedData, divSelector, form;
+        divSelector = "div.dal-forward-conf#dal-forward-conf-for-" +
+                element.attr("id");
+        form = element.length > 0 ? $(element[0].form) : $();
+        forwardElem = form.find(divSelector).find('script');
+        if (forwardElem.length === 0) {
+            return;
         }
+        try {
+            forwardList = JSON.parse(forwardElem.text());
+        } catch (e) {
+            return;
+        }
+
+        if (!Array.isArray(forwardList)) {
+            return;
+        }
+            
+        prefix = $(element).getFormPrefix();
+        forwardedData = {};
+
+        $.each(forwardList, function(ix, f) {
+            if (f["type"] === "const") {
+                forwardedData[f["dst"]] = f["val"];
+            } else if (f["type"] === "field") {
+                var srcName, dstName;
+                srcName = f["src"];
+                if (f.hasOwnProperty("dst")) {
+                    dstName = f["dst"];
+                } else {
+                    dstName = srcName;
+                }
+                // First look for this field in the inline
+                $field = $('[name=' + prefix + srcName + ']');
+                if (!$field.length)
+                    // As a fallback, look for it outside the inline
+                    $field = $('[name=' + srcName + ']');
+                if ($field.length)
+                    forwardedData[dstName] = $field.val();
+
+            }
+        });
+        return JSON.stringify(forwardedData);
     }
 
     $(document).on('autocompleteLightInitialize', '[data-autocomplete-light-function=selectize]', function() {
@@ -27,7 +56,8 @@
             load = function(query, callback) {
                 var data = {
                     q: query,
-                    forward: add_forwards($elem)
+                    forward: get_forwards($elem)
+                    //create: $elem.attr('data-autocomplete-light-create') && !$elem.attr('data-tags'),
                 }
                 if ($elem.val() instanceof Array) {
                     data['selected'] = $elem.val().join(',');
@@ -57,14 +87,27 @@
         $elem.find('option[value=""]').remove();
 
         // Bind selectize
-        $elem.selectize({
+        var $select = $elem.selectize({
+            plugins: ['remove_button'],
             delimiter: $elem.attr('data-tags') ? ',' : null,
             allowEmptyOption: ! $elem.is('required'),
             preload: true,
-            load: load
+            load: load,
+            //onChange: eventHandler('onChange'),
+            render: {
+                option: function(data, escape) {
+                    return "<div>" + data.text + "</div>";
+                },
+                item: function(data, escape) {
+                    return "<div>" + data.text + "</div>";
+                }
+            }
         });
 
     });
 
-
+    $('[data-autocomplete-light-function]:not([id*="__prefix__"])').each(function() {
+        window.__dal__initialize(this);
+    });
 })(yl.jQuery);
+
