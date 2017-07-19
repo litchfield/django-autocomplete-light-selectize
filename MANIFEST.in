@@ -1,1 +1,3 @@
-
+include LICENSE
+include README.rst
+recursive-include dal_selectize/static *
