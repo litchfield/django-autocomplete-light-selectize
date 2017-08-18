@@ -1,70 +1,103 @@
 ;(function ($) {
     
-    function add_forwards(element) {
-        var forward = element.attr('data-autocomplete-light-forward');
-        if (forward !== undefined) {
-            forward = forward.split(',');
-
-            var prefix = $(element).getFormPrefix();
-            var data_forward = {};
-
-            for (var key in forward) {
-                var name = prefix + forward[key];
-                data_forward[forward[key]] = $('[name=' + name + ']').val();
-            }
-
-            return JSON.stringify(data_forward);
+    function get_forwards(element) {
+        var forwardElem, forwardList, prefix, forwardedData, divSelector, form;
+        divSelector = "div.dal-forward-conf#dal-forward-conf-for-" +
+                element.attr("id");
+        form = element.length > 0 ? $(element[0].form) : $();
+        forwardElem = form.find(divSelector).find('script');
+        if (forwardElem.length === 0) {
+            return;
         }
+        try {
+            forwardList = JSON.parse(forwardElem.text());
+        } catch (e) {
+            return;
+        }
+
+        if (!Array.isArray(forwardList)) {
+            return;
+        }
+            
+        prefix = $(element).getFormPrefix();
+        forwardedData = {};
+
+        $.each(forwardList, function(ix, f) {
+            if (f["type"] === "const") {
+                forwardedData[f["dst"]] = f["val"];
+            } else if (f["type"] === "field") {
+                var srcName, dstName;
+                srcName = f["src"];
+                if (f.hasOwnProperty("dst")) {
+                    dstName = f["dst"];
+                } else {
+                    dstName = srcName;
+                }
+                // First look for this field in the inline
+                $field = $('[name=' + prefix + srcName + ']');
+                if (!$field.length)
+                    // As a fallback, look for it outside the inline
+                    $field = $('[name=' + srcName + ']');
+                if ($field.length)
+                    forwardedData[dstName] = $field.val();
+
+            }
+        });
+        return JSON.stringify(forwardedData);
     }
 
     $(document).on('autocompleteLightInitialize', '[data-autocomplete-light-function=selectize]', function() {
-        var $elem = $(this);
-
-        // If we have a URL, setup AJAX call
-        var load;
-        var url = $elem.attr('data-autocomplete-light-url');
-        if (url) {
-            load = function(query, callback) {
-                var data = {
-                    q: query,
-                    forward: add_forwards($elem)
-                }
-                if ($elem.val() instanceof Array) {
-                    data['selected'] = $elem.val().join(',');
-                }
+        var element = $(this);        
+        var ajax = null;
+        if ($(this).attr('data-autocomplete-light-url')) {
+            ajax = function(query, callback) {
+                if (!query.length) return callback();
                 $.ajax({
-                    url: url,
+                    url: element.attr('data-autocomplete-light-url'),
                     dataType: 'json',
                     delay: 250,
-                    data: data,
-                    error: function() {
-                        // TODO: handle error better
-                        console.log('Error calling `' + $elem.attr('name') + '` selectize AJAX endpoint');
+                    data: {
+                        q: query,
+                        //page: params.page,
+                        create: element.attr('data-autocomplete-light-create') && !element.attr('data-tags'),
+                        forward: get_forwards(element)
                     },
                     success: function(data) {
-                        if ($elem.attr('data-tags')) {
+                        if (element.attr('data-tags')) {
                             $.each(data.results, function(index, item) {
                                 item.value = item.text;
                             });
                         }
                         callback(data.results);
-                    }
+                    },
+                    cache: true
                 });
-            };
-        };
+            }
+        }
 
         // This widget has a clear button
-        $elem.find('option[value=""]').remove();
+        element.find('option[value=""]').remove();
 
         // Bind selectize
-        $elem.selectize({
-            delimiter: $elem.attr('data-tags') ? ',' : null,
-            allowEmptyOption: ! $elem.is('required'),
-            preload: true,
-            load: load
+        element.selectize({
+            plugins: ['remove_button'],
+            delimiter: element.attr('data-tags') ? ',' : null,
+            allowEmptyOption: ! element.is('required'),
+            preload: false,
+            load: ajax,
+            render: {
+                option: function(data, escape) {
+                    return "<div>" + data.text + "</div>";
+                },
+                item: function(data, escape) {
+                    return "<div>" + data.text + "</div>";
+                }
+            }
         });
 
     });
 
-
+    $('[data-autocomplete-light-function]:not([id*="__prefix__"])').each(function() {
+        window.__dal__initialize(this);
+    });
 })(yl.jQuery);

@@ -12,16 +12,17 @@ def read(fname):
 
 setup(
     name='django-autocomplete-light-selectize',
-    version='0.1',
+    version='0.1.3',
     description='Selectize support for Django Autocomplete Light',
     author='Simon Litchfield',
     author_email='simon@litchfield.digital',
-
+    zip_safe=False,
     url="http://github.com/litchfield/django-autocomplete-light-selectize",
     license="MIT License",
     keywords='django autocomplete',
     platforms=["any"],
     packages=['dal_selectize'],
+    #packages = find_packages('dal_selectize'),
     #data_files=[(template_dir, templates)],
     classifiers=[
         'Development Status :: 3 - Alpha',
